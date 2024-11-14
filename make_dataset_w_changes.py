@@ -8,8 +8,8 @@ import pandas as pd
 import torch
 from skimage import io, transform
 
-#IMG_LOC = "/Users/annastuckert/Documents/GitHub/facemap/data/facemap/"
-IMG_LOC = r"C:\Users\avs20\Documents\GitHub\facemap\data\schroeder"
+IMG_LOC = "/Users/annastuckert/Documents/GitHub/facemap/data/facemap/"
+# IMG_LOC = r"C:\Users\avs20\Documents\GitHub\facemap\data\schroeder"
 if os.path.isdir(IMG_LOC + "low_res"):
     print("Folder exists!")
 else:
@@ -57,10 +57,12 @@ for i in range(len(img_files)):
 
     ### nyt fra Søreno ###
     x_start = (w_org - h_org) // 2
-    im_cropped = im[:, x_start:x_start + h_org]  # Crop width to h_org, centered
+    im_cropped = im[:, x_start : x_start + h_org]  # Crop width to h_org, centered
     ### nyt fra Søreno ###
 
-    im_r = (transform.resize(im_cropped, (h, w), anti_aliasing=True) * 255).astype("uint8")
+    im_r = (transform.resize(im_cropped, (h, w), anti_aliasing=True) * 255).astype(
+        "uint8"
+    )
     data[i] = torch.Tensor(im_r / 255.0)
     io.imsave(IMG_LOC + "low_res/" + img_files[i].split("/")[-1], im_r)
 
