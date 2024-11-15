@@ -92,5 +92,6 @@ x = x.unsqueeze(1)  # Add channel dimension to x
 y = y.numpy()  # Convert y to numpy if needed
 
 print("Data and labels are loaded and transformed.")
+print(x.shape)
 
 torch.save((x, y), "data/facemap_test_224_RGB.pt")

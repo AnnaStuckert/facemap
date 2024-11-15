@@ -18,3 +18,4 @@ for i in range(len(y)):
     softlabels[i, 0] = torch.Tensor(label)
 
 torch.save((x, y, softlabels), "data/facemap_softlabels_test_RGB.pt")
+print(x.shape)
