@@ -79,5 +79,5 @@ y = y.numpy()  # Convert y to numpy if needed
 
 print("Data and labels are loaded and transformed.")
 
-torch.save((x, y), "data/facemap_test_224.pt")
+torch.save((x, y), "data/facemap_test_224_new.pt")
 print(x.shape)

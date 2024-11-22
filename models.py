@@ -49,12 +49,12 @@ class Unet(nn.Module):
 
         self.uEnc2 = convBlock(nhid,2*nhid,2*nhid,pool=True)
         self.uEnc3 = convBlock(2*nhid,4*nhid,4*nhid,pool=True)
-        #self.uEnc4 = convBlock(4*nhid,8*nhid,8*nhid,pool=True)
-        #self.uEnc5 = convBlock(8*nhid,16*nhid,16*nhid,pool=True)
+        self.uEnc4 = convBlock(4*nhid,8*nhid,8*nhid,pool=True) #unhashed
+        self.uEnc5 = convBlock(8*nhid,16*nhid,16*nhid,pool=True) #unhashed
 
         ### U-net decoder 
-        #self.dec5 = convBlock(16*nhid,8*nhid,8*nhid,pool=False)
-        #self.dec4 = convBlock(16*nhid,4*nhid,4*nhid,pool=False)
+        self.dec5 = convBlock(16*nhid,8*nhid,8*nhid,pool=False) #unhashed
+        self.dec4 = convBlock(16*nhid,4*nhid,4*nhid,pool=False) #unhashed
         self.dec3 = convBlock(4*nhid,2*nhid,2*nhid,pool=False,pooling=2)
         self.dec2 = convBlock(4*nhid,nhid,nhid,pool=False,pooling=2)
 
