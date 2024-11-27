@@ -24,30 +24,11 @@ np.random.seed(42)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# class facemapdataset(Dataset):
-#      def __init__(self,
-#              data_file = 'data/facemap_softlabels.pt',
-#              transform=None):
-#           super().__init__()
-
-#           self.transform = transform
-#           self.data, _, self.targets = torch.load(data_file)
-
-#      def __len__(self):
-#           return len(self.targets)
-
-#      def __getitem__(self, index):
-#           image, label = self.data[index].clone(), self.targets[index].clone()
-#           if (self.transform is not None) and (torch.rand(1) > 0.5):
-#                image = image.flip([2])
-#                label = label.flip([2])
-#           return image, label
-
 
 class FaceMapDataset(Dataset):
     def __init__(
         self,
-        data_file="data/facemap_softlabels.pt",
+        data_file="data/schroeder_test_softlabels_224.pt",
         transform=None,
         rotation_degrees=15,
         blur_radius=(1, 2),  # Tuple for Gaussian blur radius range
@@ -161,7 +142,7 @@ nTest = len(loader_test)
 
 ### hyperparam
 lr = 5e-4
-num_epochs = 500
+num_epochs = 300
 
 model = Unet()
 # timm.create_model('vit_base_patch8_224',
@@ -285,7 +266,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class FaceMapDataset(Dataset):
     def __init__(
         self,
-        data_file="data/schroeder_softlabels_new.pt",
+        data_file="data/schroeder_test_softlabels_224.pt",
         transform=None,
         rotation_degrees=15,
         blur_radius=(1, 2),  # Tuple for Gaussian blur radius range

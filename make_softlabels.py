@@ -4,8 +4,8 @@ import numpy as np
 import torch
 from scipy.ndimage import gaussian_filter
 from skimage import io
-x, y = torch.load("data/facemap_test_224.pt")
-
+#x, y = torch.load("data/facemap_test_224.pt")
+x, y = torch.load("data/schroeder_test_224_new.pt")
 h, w = x[0].shape[1], x[1].shape[2]
 sigma = 5 #increase from original 3 to 5
 softlabels = torch.zeros(x.shape)

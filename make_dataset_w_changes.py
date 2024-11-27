@@ -1,83 +1,91 @@
 import glob
 import os
-import pdb
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
 from skimage import io, transform
 
-IMG_LOC = "/Users/annastuckert/Documents/GitHub/facemap/data/facemap/"
-# IMG_LOC = r"C:\Users\avs20\Documents\GitHub\facemap\data\schroeder"
-if os.path.isdir(IMG_LOC + "low_res"):
+# Base image location
+IMG_LOC = r"C:\Users\avs20\Documents\GitHub\facemap\data\schroeder"
+
+# Ensure "low_res" folder exists
+low_res_folder = os.path.join(IMG_LOC, "low_res")
+if os.path.isdir(low_res_folder):
     print("Folder exists!")
 else:
-    os.makedirs(IMG_LOC + "low_res")
+    os.makedirs(low_res_folder)
 
-img_files = sorted(glob.glob(IMG_LOC + "*.png"))
-labels = pd.read_csv(IMG_LOC + "labels.csv")
-h = w = 224
+# Get list of image files
+img_files = sorted(glob.glob(os.path.join(IMG_LOC, "*.png")))
 
-# print(img_files.shape)
+# Load labels CSV
+labels_path = os.path.join(IMG_LOC, "labels.csv")
+labels = pd.read_csv(labels_path)
 
+h = w = 224  # Target resolution
+
+# Load the first image to get original dimensions
 img = plt.imread(img_files[0])
+h_org, w_org = img.shape[:2]  # Original image height and width
 
-h_org = img.shape[0]
-w_org = img.shape[1]
-
-### Make new labels for low-res
-
-# x_off = (300 - 224) // 2  # (h/h_org*w_org - w) // 2
+# Calculate offset for cropping
 x_off = (h / h_org * w_org - w) // 2
 
-# Remove the first 3 rows and the first 3 columns from `labels`
-labels = labels.iloc[2:, 2:]
+# Adjust labels for low-res images
+labels = labels.iloc[2:, 2:]  # Remove the first 3 rows and columns
+target = labels.iloc[:, 1:].values.astype(np.float32)
 
-target = labels.iloc[:, 1:].values
-# print(target)
-# print(target)
-# print(target.dtype)
-# print("h type:", type(h), "h_org type:", type(h_org))
-target = np.array(target, dtype=np.float32)
-
-target = target * h / h_org  # rescale markers
-
-target[:, ::2] = target[:, ::2] - x_off
+# Rescale and adjust labels
+target = target * h / h_org  # Rescale markers
+target[:, ::2] -= x_off  # Adjust x-coordinates
 target = torch.Tensor(target)
 
+# Save updated labels
 labels.iloc[:, 1:] = target
-labels.to_csv(IMG_LOC + "low_res/labels.csv", index=False)
+labels.to_csv(os.path.join(low_res_folder, "labels.csv"), index=False)
 
+# Prepare to save resized images and tensor data
 data = torch.zeros((len(img_files), h, w))
 print("Resizing images... \nSaving in torch format")
 
-for i in range(len(img_files)):
-    im = plt.imread(img_files[i])[:, :, 0]
+for i, img_file in enumerate(img_files):
+    im = plt.imread(img_file)[:, :, 0]  # Load image and convert to grayscale
 
-    ### nyt fra Søreno ###
+    # Crop the width to match original height, centered
     x_start = (w_org - h_org) // 2
-    im_cropped = im[:, x_start : x_start + h_org]  # Crop width to h_org, centered
-    ### nyt fra Søreno ###
+    im_cropped = im[:, x_start:x_start + h_org]
 
-    im_r = (transform.resize(im_cropped, (h, w), anti_aliasing=True) * 255).astype(
-        "uint8"
-    )
+    # Resize image to target dimensions
+    im_r = (transform.resize(im_cropped, (h, w), anti_aliasing=True) * 255).astype("uint8")
+    
+    # Save resized image
+    save_path = os.path.join(low_res_folder, os.path.basename(img_file))
+    io.imsave(save_path, im_r)
+
+    # Normalize and add to tensor
     data[i] = torch.Tensor(im_r / 255.0)
-    io.imsave(IMG_LOC + "low_res/" + img_files[i].split("/")[-1], im_r)
 
-torch.save((data, target), IMG_LOC + "low_res/schroeder_224.pt")
+# Save data and labels in PyTorch format
+torch_save_path = os.path.join(low_res_folder, "schroeder_224.pt")
+torch.save((data, target), torch_save_path)
 
-print("Done! Saved in " + IMG_LOC + "low_res/")
+print(f"Done! Saved resized images and data in {low_res_folder}")
 
-# Load the data and transform `x` and `y` in the correct place
-x, y = torch.load(IMG_LOC + "low_res/schroeder_224.pt")
+# Load and transform the saved data
+x, y = torch.load(torch_save_path)
+
 
 # Transformations for `x` and `y`
-x = x.unsqueeze(1)  # Add channel dimension to x
-y = y.numpy()  # Convert y to numpy if needed
+x = x.unsqueeze(1)  # Add channel dimension to `x`
+y = y.numpy()  # Convert `y` to numpy if needed
 
-print("Data and labels are loaded and transformed.")
-
-torch.save((x, y), "data/facemap_test_224_new.pt")
 print(x.shape)
+print(y.shape)
+
+# Save final transformed data
+final_save_path = "data/schroeder_test_224_new.pt"
+torch.save((x, y), final_save_path)
+
+print(f"Data and labels are loaded and transformed.\nSaved in {final_save_path}")
+print("Final x shape:", x.shape)

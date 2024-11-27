@@ -35,3 +35,6 @@ train_vit_unetscript.py
 train_seg_vit.py
 simple_swin_heatmap.pth
 old_logs_preds
+data
+/data
+data/

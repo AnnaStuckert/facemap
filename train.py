@@ -20,14 +20,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class facemapdataset(Dataset):
      def __init__(self, 
-             data_file = 'data/facemap_test_224.pt',
+             #data_file = 'data/facemap_test_224.pt',
+             data_file = "data/schroeder_test_224_new.pt",
              transform=None):
           super().__init__()
 
           self.transform = transform
           self.data, self.targets = torch.load(data_file)
           self.targets = torch.Tensor(self.targets)
-          self.targets = torch.nan_to_num(self.targets, nan=1.0)
+          self.targets = torch.nan_to_num(self.targets, nan=0) # was 1.0, tried with 0, maybe nans were set to 1 not 0, and everything but 0 were included in the model?
 
      def __len__(self):
           return len(self.targets)
@@ -73,10 +74,10 @@ nTest = len(loader_test)
 
 ### hyperparam
 lr = 5e-4
-num_epochs = 100
+num_epochs = 10
 
 num_input_channels = 1  # Change this to the desired number of input channels
-num_output_classes = 24  # Change this to the desired number of output classes
+num_output_classes = 18  # Change this to the desired number of output classes
 
 
 model = timm.create_model('vit_base_patch8_224',
@@ -99,7 +100,9 @@ for epoch in range(num_epochs):
         inputs = inputs.to(device)
         labels = labels.to(device)
         scores = F.softplus(model(inputs))
-        loss = loss_fun(torch.log(scores),torch.log(F.softplus(labels)))
+        loss = loss_fun(
+            torch.log(scores[labels != 0]), torch.log(F.softplus(labels[labels != 0]))
+        )
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -114,7 +117,10 @@ for epoch in range(num_epochs):
             inputs = inputs.to(device)
             labels = labels.to(device)
             scores = F.softplus(model(inputs))
-            loss = loss_fun(torch.log(scores),torch.log(F.softplus(labels)))
+            loss = loss_fun(
+                torch.log(scores[labels != 0]),
+                torch.log(F.softplus(labels[labels != 0])),
+            )
             val_loss += loss.item()
         val_loss = val_loss/(i+1)
         
