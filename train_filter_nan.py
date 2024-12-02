@@ -19,7 +19,7 @@ np.random.seed(42)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class facemapdataset(Dataset):
-    def __init__(self, data_file="data/schroeder_test_224_new.pt", transform=None):
+    def __init__(self, data_file="data/dolensek_test_224_new.pt", transform=None):
         super().__init__()
 
         self.transform = transform
@@ -84,7 +84,7 @@ nTest = len(loader_test)
 lr = 5e-4
 num_epochs = 300
 num_input_channels = 1  # Change this to the desired number of input channels
-num_output_classes = 18  # Change this to the desired number of output classes
+num_output_classes = 24  # Change this to the desired number of output classes
 
 model = timm.create_model('vit_base_patch8_224',
                           pretrained=True, in_chans=1, num_classes=num_output_classes)
@@ -146,6 +146,7 @@ for epoch in range(num_epochs):
             plt.plot(labels[i, ::2], labels[i, 1::2], 'o', c='tab:green', label='label')
         plt.tight_layout()
         plt.savefig('logs/epoch_%03d.jpg' % epoch)
+        plt.close()
             
         if minLoss > val_loss:
             convEpoch = epoch
@@ -187,6 +188,7 @@ with torch.no_grad():
         plt.plot(labels[::2], labels[1::2], 'o', c='tab:green')
         plt.tight_layout()
         plt.savefig('preds/test_%03d.jpg' % i)
+        plt.close()
 
     val_loss = val_loss / (i + 1)
     print('Test. loss :%.4f' % val_loss)

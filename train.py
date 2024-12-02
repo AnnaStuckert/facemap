@@ -21,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 class facemapdataset(Dataset):
      def __init__(self, 
              #data_file = 'data/facemap_test_224.pt',
-             data_file = "data/schroeder_test_224_new.pt",
+             data_file = "data/dolensek_facemap_224.pt",
              transform=None):
           super().__init__()
 
@@ -41,15 +41,27 @@ class facemapdataset(Dataset):
           return image, label
 
 ### Make dataset
-dataset  = facemapdataset() #(transform='flip')
+dataset  = facemapdataset(transform=None) #(transform='flip')
 
 x = dataset[0][0]
 dim = x.shape[-1]
 print('Using %d size of images'%dim)
 N = len(dataset)
-train_sampler = SubsetRandomSampler(np.arange(int(0.6*N)))
-valid_sampler = SubsetRandomSampler(np.arange(int(0.6*N),int(0.8*N)))
-test_sampler = SubsetRandomSampler(np.arange(int(0.8*N),N))
+#train_sampler = SubsetRandomSampler(np.arange(int(0.6*N)))
+#valid_sampler = SubsetRandomSampler(np.arange(int(0.6*N),int(0.8*N)))
+#test_sampler = SubsetRandomSampler(np.arange(int(0.8*N),N))
+
+
+#try randomization
+indices = np.random.permutation(N)
+train_indices = indices[:int(0.6*N)]
+valid_indices = indices[int(0.6*N):int(0.8*N)]
+test_indices = indices[int(0.8*N):]
+
+train_sampler = SubsetRandomSampler(train_indices)
+valid_sampler = SubsetRandomSampler(valid_indices)
+test_sampler = SubsetRandomSampler(test_indices)
+
 batch_size = 4
 # Initialize loss and metrics
 loss_fun = torch.nn.MSELoss(reduction='sum')
@@ -74,10 +86,10 @@ nTest = len(loader_test)
 
 ### hyperparam
 lr = 5e-4
-num_epochs = 10
+num_epochs = 300
 
 num_input_channels = 1  # Change this to the desired number of input channels
-num_output_classes = 18  # Change this to the desired number of output classes
+num_output_classes = 24  # Change this to the desired number of output classes
 
 
 model = timm.create_model('vit_base_patch8_224',
@@ -140,6 +152,7 @@ for epoch in range(num_epochs):
             plt.plot(labels[i,::2],labels[i,1::2],'o',c='tab:green',label='label')
         plt.tight_layout()
         plt.savefig('logs/epoch_%03d.jpg'%epoch)
+        plt.close()
             
         if minLoss > val_loss:
             convEpoch = epoch
@@ -159,6 +172,7 @@ plt.plot(convEpoch,valid_loss[convEpoch],'x',label='Final Model')
 plt.legend()
 plt.tight_layout()
 plt.savefig('loss_curve.pdf')
+plt.close()
 
 ### Load best model for inference
 with torch.no_grad():
@@ -180,6 +194,7 @@ with torch.no_grad():
         plt.plot(labels[::2],labels[1::2],'o',c='tab:green')
         plt.tight_layout()
         plt.savefig('preds/test_%03d.jpg'%i)
+        plt.close()
 
     val_loss = val_loss/(i+1)
     
