@@ -37,4 +37,7 @@ simple_swin_heatmap.pth
 old_logs_preds
 data
 /data
-data/
+data/da
+data/schroeder_individual_folders
+
+old_models_pre20250114
